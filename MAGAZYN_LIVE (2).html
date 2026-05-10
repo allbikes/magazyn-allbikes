@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALL BIKE — Magazyn Live</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --surface: #ffffff;
+    --surface2: #f0f2f5;
+    --border: #dde1e7;
+    --accent: #1a56db;
+    --accent2: #1e40af;
+    --text: #111827;
+    --muted: #6b7280;
+    --green: #16a34a;
+    --yellow: #d97706;
+    --red: #dc2626;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; min-height:100vh; font-size:14px; }
+
+  /* HEADER */
+  header {
+    background: #ffffff;
+    border-bottom: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex; align-items: center; gap: 16px;
+    position: sticky; top:0; z-index:200;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .logo { font-size:1.3rem; font-weight:700; color:var(--accent); letter-spacing:-0.5px; line-height:1; }
+  .logo span { color:var(--text); }
+  .subtitle { color:var(--muted); font-size:0.72rem; letter-spacing:0.5px; margin-top:2px; }
+  .live-dot { width:7px; height:7px; border-radius:50%; background:var(--green); animation:pulse 2s infinite; flex-shrink:0; }
+  .live-label { font-size:0.7rem; color:var(--green); font-weight:600; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .header-right { margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .search-box {
+    background:#fff; border:1px solid var(--border); border-radius:6px;
+    padding:7px 12px; color:var(--text); font-family:'Inter',sans-serif; font-size:0.85rem;
+    width:220px; outline:none; transition:border-color .15s;
+  }
+  .search-box:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(26,86,219,0.1); }
+  .search-box::placeholder { color:#9ca3af; }
+  .stats-pill { background:var(--surface2); border:1px solid var(--border); border-radius:20px; padding:5px 12px; font-size:0.78rem; color:var(--muted); white-space:nowrap; }
+  .stats-pill strong { color:var(--accent); }
+  .refresh-btn {
+    background:#fff; border:1px solid var(--border); border-radius:6px;
+    padding:7px 12px; color:var(--muted); font-size:0.8rem; cursor:pointer;
+    font-family:'Inter',sans-serif; transition:all .15s; display:flex; align-items:center; gap:5px;
+  }
+  .refresh-btn:hover { border-color:var(--accent); color:var(--accent); background:#f0f5ff; }
+  .refresh-btn svg { width:13px; height:13px; }
+  .refresh-btn.spinning svg { animation: spin 1s linear infinite; }
+  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+  /* TABS */
+  .tabs-wrapper { background:#fff; border-bottom:1px solid var(--border); position:sticky; top:61px; z-index:100; }
+  .tabs { display:flex; padding:0 16px; gap:0; overflow-x:auto; scrollbar-width:none; }
+  .tabs::-webkit-scrollbar { display:none; }
+  .tab {
+    padding:11px 14px; font-size:0.78rem; font-weight:500;
+    cursor:pointer; border:none; background:transparent; color:var(--muted);
+    border-bottom:2px solid transparent; transition:all .15s; white-space:nowrap; flex-shrink:0;
+  }
+  .tab:hover { color:var(--text); background:#f9fafb; }
+  .tab.active { color:var(--accent); border-bottom-color:var(--accent); font-weight:600; }
+  .tab-count { background:var(--surface2); border-radius:10px; padding:1px 6px; font-size:0.68rem; margin-left:4px; color:var(--muted); }
+  .tab.active .tab-count { background:#dbeafe; color:var(--accent); }
+  .tab.error-tab { color:var(--red); }
+
+  /* MAIN */
+  main { padding:20px 28px; }
+
+  /* TOOLBAR */
+  .toolbar { display:flex; gap:8px; margin-bottom:16px; align-items:center; flex-wrap:wrap; }
+  .sort-label { color:var(--muted); font-size:0.75rem; font-weight:500; }
+  .sort-btn {
+    padding:5px 11px; border-radius:5px; border:1px solid var(--border);
+    background:#fff; color:var(--muted); font-size:0.78rem; cursor:pointer;
+    transition:all .15s; font-family:'Inter',sans-serif;
+  }
+  .sort-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .sort-btn.active { background:#dbeafe; border-color:var(--accent); color:var(--accent); font-weight:600; }
+  .results-info { margin-left:auto; color:var(--muted); font-size:0.78rem; }
+  .last-update { color:var(--muted); font-size:0.7rem; }
+
+  /* TABLE */
+  .table-wrap { overflow-x:auto; border-radius:8px; border:1px solid var(--border); background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
+  table { width:100%; border-collapse:collapse; }
+  thead { background:#f8fafc; }
+  thead th {
+    padding:11px 14px; text-align:left; font-size:0.72rem; font-weight:600;
+    letter-spacing:0.5px; text-transform:uppercase; color:var(--muted);
+    border-bottom:1px solid var(--border); white-space:nowrap;
+  }
+  thead th.img-th { width:190px; text-align:center; }
+  tbody tr { border-bottom:1px solid #f1f5f9; background:#fff; transition:background .1s; }
+  tbody tr:last-child { border-bottom:none; }
+  tbody tr:hover { background:#f8fafc; }
+  tbody td { padding:10px 14px; vertical-align:middle; }
+
+  /* IMAGE */
+  .img-cell { text-align:center; width:190px; }
+  .bike-img-wrap {
+    width:175px; height:118px; margin:0 auto 6px; border-radius:6px;
+    overflow:hidden; background:#f1f5f9; border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; position:relative; transition:border-color .15s, box-shadow .15s;
+  }
+  .bike-img-wrap:hover { border-color:var(--accent); box-shadow:0 2px 8px rgba(26,86,219,0.12); }
+  .bike-img-wrap img { width:100%; height:100%; object-fit:cover; transition:transform .3s; }
+  .bike-img-wrap:hover img { transform:scale(1.04); }
+  .img-ph { display:flex;flex-direction:column;align-items:center;gap:5px;color:#9ca3af;font-size:0.68rem;padding:8px; }
+  .img-ph svg { width:28px;height:28px;opacity:0.35; }
+  .search-link {
+    display:inline-flex; align-items:center; gap:3px;
+    color:var(--accent); font-size:0.7rem; text-decoration:none; font-weight:500;
+    padding:3px 8px; border:1px solid #bfdbfe; border-radius:4px; background:#eff6ff;
+    transition:all .15s;
+  }
+  .search-link:hover { background:#dbeafe; border-color:var(--accent); }
+  .search-link svg { width:10px; height:10px; }
+
+  /* CELLS */
+  .bike-name { font-weight:500; font-size:0.88rem; line-height:1.45; color:var(--text); }
+  .badge-kod { font-family:monospace; font-size:0.8rem; color:#374151; background:#f3f4f6; padding:2px 7px; border-radius:4px; border:1px solid var(--border); }
+  .shop-id { font-family:monospace; font-size:0.85rem; font-weight:600; color:#374151; }
+  .qty { font-size:0.88rem; font-weight:700; }
+  .qty.high { color:var(--green); }
+  .qty.mid { color:var(--yellow); }
+  .qty.low { color:var(--red); }
+  .qty.zero { color:#9ca3af; }
+  .price { font-size:0.92rem; font-weight:600; color:var(--text); }
+  .missing { color:var(--red); font-weight:600; }
+
+  /* STATES */
+  .state-box { text-align:center; padding:70px 20px; background:#fff; border-radius:8px; border:1px solid var(--border); }
+  .state-box .icon { font-size:2.5rem; margin-bottom:12px; opacity:0.4; }
+  .state-box h3 { color:var(--muted); font-size:1rem; margin-bottom:6px; }
+  .state-box p { color:#9ca3af; font-size:0.82rem; }
+  .state-box.loading-state .icon { animation:bounce 1s infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  .error-box { background:#fef2f2; border-color:#fecaca; }
+  .error-box h3 { color:var(--red); }
+  .retry-btn {
+    margin-top:14px; padding:8px 20px; background:var(--accent); border:none; border-radius:6px;
+    color:white; font-family:'Inter',sans-serif; font-size:0.85rem; cursor:pointer; transition:opacity .2s; font-weight:500;
+  }
+  .retry-btn:hover { opacity:0.88; }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:20px; right:20px; background:#fff; border:1px solid var(--border); border-left:3px solid var(--green); border-radius:6px; padding:10px 16px; font-size:0.82rem; color:var(--text); opacity:0; transition:opacity .3s; pointer-events:none; z-index:999; max-width:280px; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+  .toast.show { opacity:1; }
+
+  ::-webkit-scrollbar { width:5px; height:5px; }
+  ::-webkit-scrollbar-track { background:#f1f5f9; }
+  ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">ALL <span>BIKE</span></div>
+    <div class="subtitle">Magazyn — Live Data</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:3px;margin-left:8px;">
+    <div style="display:flex;align-items:center;gap:6px;"><div class="live-dot"></div><span class="live-label">Live</span></div>
+    <span class="last-update" id="lastUpdate">Ładowanie...</span>
+  </div>
+  <div class="header-right">
+    <input class="search-box" type="text" id="globalSearch" placeholder="🔍  Szukaj modelu, kodu..." oninput="filterAndRender()">
+    <div class="stats-pill">Łącznie: <strong id="totalCount">—</strong> modeli</div>
+    <button class="refresh-btn" id="refreshBtn" onclick="refreshCurrentSheet()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+      Odśwież
+    </button>
+  </div>
+</header>
+
+<div class="tabs-wrapper">
+  <div class="tabs" id="tabsContainer"></div>
+</div>
+
+<main>
+  <div class="toolbar">
+    <span class="sort-label">Sortuj:</span>
+    <button class="sort-btn active" onclick="setSort('name',this)">Nazwa A–Z</button>
+    <button class="sort-btn" onclick="setSort('qty_desc',this)">Ilość ↓</button>
+    <button class="sort-btn" onclick="setSort('qty_asc',this)">Ilość ↑</button>
+    <button class="sort-btn" onclick="setSort('price_asc',this)">Cena ↑</button>
+    <button class="sort-btn" onclick="setSort('price_desc',this)">Cena ↓</button>
+    <span class="results-info" id="resultsInfo"></span>
+  </div>
+  <div id="tableContainer"></div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+const SHEET_ID = '2PACX-1vRnrlNfq8WTG7A21redQ7NN3CHTMkSd6wBbJBrZjlCOqMtBSLlEyamAc9CxbW_WkkQNzQ_C0QP_fbO8';
+const BASE_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?output=csv`;
+
+// Wszystkie zakładki z Twoich screenów (pomijamy systemowe App:*)
+const SHEETS = [
+  { name:'KROSS',                gid:'639678047'   },
+  { name:'ROMET',                gid:'200097009'   },
+  { name:'TABOU',                gid:'0'           },
+  { name:'ONILUS',               gid:'1567847413'  },
+  { name:'SAVENO',               gid:'1691154286'  },
+  { name:'MERIDA',               gid:'463317300'   },
+  { name:'SEKTOR/SVR',           gid:'1282906237'  },
+  { name:'CYCLISION',            gid:'659526657'   },
+  { name:'SHOCKBLAZE',           gid:'1853541441'  },
+  { name:'SUPERIOR',             gid:'1849430619'  },
+  { name:'ECOBIKE/Barton/Ovivo', gid:'956695839'   },
+  { name:'GHOST',                gid:'1389666850'  },
+  { name:'NS BIKES',             gid:'586926030'   },
+  { name:'DARTMOOR',             gid:'1855825315'  },
+  { name:'LAPIERRE',             gid:'1260342292'  },
+  { name:'MONDRAKER',            gid:'908839319'   },
+  { name:'CORRATEC',             gid:'686927495'   },
+  { name:'OVERFLY',              gid:'1966270566'  },
+  { name:'HB',                   gid:'1418335042'  },
+  { name:'STORM',                gid:'910973918'   },
+  { name:'MBike',                gid:'740737223'   },
+  { name:'CTM',                  gid:'585224939'   },
+  { name:'ORBEA',                gid:'1820443307'  },
+  { name:'DEMA',                 gid:'1741272744'  },
+  { name:'AMULET',               gid:'2047892159'  },
+  { name:'CORELLI',              gid:'63727180'    },
+  { name:'12"-20"',              gid:'1677039807'  },
+  { name:'Puky',                 gid:'1904402002'  },
+  { name:'Karbon',               gid:'2064890087'  },
+  { name:'Cossack',              gid:'1515110268'  },
+];
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let currentSheet = SHEETS[0].name;
+let currentSort  = 'name';
+let searchQuery  = '';
+const cache      = {};   // { sheetName: { data, timestamp } }
+const CACHE_TTL  = 5 * 60 * 1000; // 5 minut
+let shopIdMap    = {};   // kod -> shopId (stabilny między odświeżeniami)
+let shopIdCounter = 1000;
+
+// ─── CSV PARSER ───────────────────────────────────────────────────────────────
+function parseCSV(text) {
+  const lines = text.split('\n').filter(l => l.trim());
+  return lines.map(line => {
+    const cols = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; continue; }
+      if (c === ',' && !inQ) { cols.push(cur.trim()); cur = ''; continue; }
+      cur += c;
+    }
+    cols.push(cur.trim());
+    return cols;
+  });
+}
+
+// ─── FETCH SHEET ──────────────────────────────────────────────────────────────
+async function fetchSheet(sheetName, forceRefresh = false) {
+  const cached = cache[sheetName];
+  if (!forceRefresh && cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+    return cached.data;
+  }
+
+  const sheet = SHEETS.find(s => s.name === sheetName);
+  const url = sheet.gid
+    ? `${BASE_URL}&gid=${sheet.gid}`
+    : BASE_URL;
+
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  const text = await resp.text();
+  const rows = parseCSV(text);
+
+  const data = processRows(rows, sheetName);
+  cache[sheetName] = { data, timestamp: Date.now() };
+  return data;
+}
+
+// ─── PROCESS ROWS ─────────────────────────────────────────────────────────────
+function processRows(rows, sheetName) {
+  if (!rows.length) return [];
+  
+  // Find header row (contains "Model" or "ROWER" or similar)
+  let headerIdx = 0;
+  for (let i = 0; i < Math.min(5, rows.length); i++) {
+    const r = rows[i].join(' ').toLowerCase();
+    if (r.includes('model') || r.includes('rower') || r.includes('kod')) {
+      headerIdx = i; break;
+    }
+  }
+
+  const header = rows[headerIdx];
+  const bikes  = [];
+
+  for (let i = headerIdx + 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row[0] && !row[1]) continue; // skip empty
+
+    const model = row[0] || row[1] || '';
+    if (!model || model.toLowerCase().includes('ilość') || model.toLowerCase().includes('dostawa')) continue;
+
+    // Detect columns
+    let kod   = '';
+    let ilosc = '';
+    let cena  = '';
+
+    // Try to find KOD (usually 4-5 digit number in col B or C)
+    for (let c = 1; c < Math.min(6, row.length); c++) {
+      const v = (row[c] || '').toString().trim();
+      if (/^\d{4,5}$/.test(v) && !kod) { kod = v; continue; }
+      if (/^\d+$/.test(v) && !ilosc && parseInt(v) < 1000) { ilosc = v; continue; }
+      if (/^\d{4,}$/.test(v) && !cena) { cena = v; }
+    }
+
+    // Stable shopId per kod
+    const key = sheetName + '|' + (kod || model);
+    if (!shopIdMap[key]) {
+      shopIdMap[key] = shopIdCounter;
+      shopIdCounter += 7;
+    }
+
+    const missing = v => (!v || v === '' || v === '0') ? '?' : v;
+
+    bikes.push({
+      shopId: shopIdMap[key],
+      model:  model || '?',
+      kod:    missing(kod),
+      ilosc:  ilosc !== '' ? ilosc : '?',
+      cena:   missing(cena),
+    });
+  }
+  return bikes;
+}
+
+// ─── SORT & FILTER ────────────────────────────────────────────────────────────
+function applyFilter(bikes) {
+  if (!searchQuery) return bikes;
+  const q = searchQuery.toLowerCase();
+  return bikes.filter(b =>
+    b.model.toLowerCase().includes(q) ||
+    b.kod.toString().includes(q) ||
+    b.shopId.toString().includes(q)
+  );
+}
+
+function applySort(bikes) {
+  const arr = [...bikes];
+  if (currentSort === 'name')       arr.sort((a,b) => a.model.localeCompare(b.model,'pl'));
+  if (currentSort === 'qty_desc')   arr.sort((a,b) => (parseInt(b.ilosc)||0)-(parseInt(a.ilosc)||0));
+  if (currentSort === 'qty_asc')    arr.sort((a,b) => (parseInt(a.ilosc)||0)-(parseInt(b.ilosc)||0));
+  if (currentSort === 'price_asc')  arr.sort((a,b) => (parseFloat(a.cena)||0)-(parseFloat(b.cena)||0));
+  if (currentSort === 'price_desc') arr.sort((a,b) => (parseFloat(b.cena)||0)-(parseFloat(a.cena)||0));
+  return arr;
+}
+
+// ─── IMAGE ────────────────────────────────────────────────────────────────────
+function getBikeImgUrl(model) {
+  const m = model.toLowerCase();
+  const term = m.includes('kids')||m.includes('puky')||m.includes('12"')||m.includes('20"') ? 'kids+bicycle'
+             : m.includes('trekk') ? 'trekking+bicycle'
+             : m.includes('mtn')||m.includes('trail')||m.includes('mountain') ? 'mountain+bike'
+             : m.includes('bmx') ? 'bmx+bike'
+             : m.includes('electric')||m.includes('elekt') ? 'electric+bicycle'
+             : m.includes('road')||m.includes('szos') ? 'road+bicycle'
+             : 'bicycle';
+  const seed = model.split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+  return `https://source.unsplash.com/350x240/?${term}&sig=${seed}`;
+}
+
+function googleImgUrl(model) {
+  const q = model.replace(/\d+x\d+/g,' ').replace(/[-–]\s*\d+(cm|")/gi,' ').replace(/\b\d{3,}\b/g,' ').replace(/\s+/g,' ').trim();
+  return `https://www.google.com/search?q=${encodeURIComponent(q+' rower')}&tbm=isch`;
+}
+function googleUrl(model) {
+  const q = model.replace(/\d+x\d+/g,' ').replace(/[-–]\s*\d+(cm|")/gi,' ').replace(/\b\d{3,}\b/g,' ').replace(/\s+/g,' ').trim();
+  return `https://www.google.com/search?q=${encodeURIComponent(q+' rower')}`;
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function qtyClass(v) {
+  const n = parseInt(v);
+  if (isNaN(n)||v==='?') return '';
+  if (n===0) return 'zero';
+  if (n>=4) return 'high';
+  if (n>=2) return 'mid';
+  return 'low';
+}
+function fmtPrice(v) {
+  if (!v||v==='?') return '<span class="missing">?</span>';
+  const n = parseFloat(v);
+  return isNaN(n) ? v : n.toLocaleString('pl-PL')+' zł';
+}
+
+function renderTable(bikes) {
+  const container = document.getElementById('tableContainer');
+  const filtered  = applyFilter(bikes);
+  const sorted    = applySort(filtered);
+
+  document.getElementById('resultsInfo').textContent =
+    `Wyniki: ${sorted.length} z ${bikes.length}`;
+
+  if (!sorted.length) {
+    container.innerHTML = `<div class="state-box"><div class="icon">🔍</div><h3>Brak wyników</h3><p>Zmień wyszukiwane hasło lub wybierz inną markę.</p></div>`;
+    return;
+  }
+
+  let html = `<div class="table-wrap"><table>
+    <thead><tr>
+      <th class="img-th">Zdjęcie</th>
+      <th>ID Sklepu</th>
+      <th>Model</th>
+      <th>Kod</th>
+      <th>Ilość</th>
+      <th>Cena min.</th>
+    </tr></thead><tbody>`;
+
+  sorted.forEach(bike => {
+    const imgUrl    = getBikeImgUrl(bike.model);
+    const gImgUrl   = googleImgUrl(bike.model);
+    const gUrl      = googleUrl(bike.model);
+    const qClass    = qtyClass(bike.ilosc);
+    const qtyCel    = bike.ilosc==='?' ? '<span class="missing">?</span>' : `<span class="qty ${qClass}">${bike.ilosc} szt.</span>`;
+    const kodCell   = bike.kod==='?' ? '<span class="missing">?</span>' : `<span class="badge-kod">${bike.kod}</span>`;
+
+    html += `<tr>
+      <td class="img-cell">
+        <div class="bike-img-wrap" onclick="window.open('${gImgUrl}','_blank')" title="Kliknij — Google Images">
+          <img src="${imgUrl}" alt="${bike.model}" loading="lazy"
+            onerror="this.parentElement.innerHTML='<div class=\\'img-ph\\'><svg viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'1.5\\'><circle cx=\\'12\\' cy=\\'12\\' r=\\'10\\'/><path d=\\'M4.93 4.93l14.14 14.14\\'/></svg><span>brak zdjęcia</span></div>'">
+        </div>
+        <a class="search-link" href="${gUrl}" target="_blank">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Szukaj dalej
+        </a>
+      </td>
+      <td><span class="shop-id">${bike.shopId}</span></td>
+      <td><div class="bike-name">${bike.model}</div></td>
+      <td>${kodCell}</td>
+      <td>${qtyCel}</td>
+      <td>${fmtPrice(bike.cena)}</td>
+    </tr>`;
+  });
+
+  html += '</tbody></table></div>';
+  container.innerHTML = html;
+}
+
+// ─── LOAD SHEET ───────────────────────────────────────────────────────────────
+async function loadSheet(sheetName, forceRefresh = false) {
+  const container = document.getElementById('tableContainer');
+  container.innerHTML = `<div class="state-box loading-state"><div class="icon">⚙️</div><h3>Pobieranie danych...</h3><p>Łączę się z Google Sheets — ${sheetName}</p></div>`;
+
+  try {
+    const bikes = await fetchSheet(sheetName, forceRefresh);
+    updateTabCount(sheetName, bikes.length);
+    updateTotalCount();
+    document.getElementById('lastUpdate').textContent = 'Aktualizacja: ' + new Date().toLocaleTimeString('pl-PL');
+
+    if (!bikes.length) {
+      container.innerHTML = `<div class="state-box"><div class="icon">📋</div><h3>Brak danych dla ${sheetName}</h3><p>Arkusz jest pusty lub nie zawiera danych w oczekiwanym formacie.</p></div>`;
+      return;
+    }
+    renderTable(bikes);
+  } catch(err) {
+    console.error(err);
+    container.innerHTML = `<div class="state-box error-box">
+      <div class="icon">⚠️</div>
+      <h3>Błąd pobierania danych</h3>
+      <p>Nie udało się załadować arkusza <strong>${sheetName}</strong>.<br>Sprawdź czy arkusz jest opublikowany jako CSV.</p>
+      <button class="retry-btn" onclick="loadSheet('${sheetName}',true)">Spróbuj ponownie</button>
+    </div>`;
+    setTabError(sheetName);
+  }
+}
+
+// ─── TABS ─────────────────────────────────────────────────────────────────────
+const tabCounts = {};
+
+function buildTabs() {
+  const c = document.getElementById('tabsContainer');
+  c.innerHTML = '';
+  SHEETS.forEach(sheet => {
+    const btn = document.createElement('button');
+    btn.className = 'tab' + (sheet.name === currentSheet ? ' active' : '');
+    btn.id = 'tab-' + sheet.name.replace(/[^a-z0-9]/gi,'_');
+    btn.innerHTML = sheet.name + `<span class="tab-count" id="cnt-${btn.id}">—</span>`;
+    btn.onclick = () => switchTab(sheet.name, btn);
+    c.appendChild(btn);
+  });
+}
+
+function switchTab(name, btn) {
+  currentSheet = name;
+  searchQuery  = '';
+  document.getElementById('globalSearch').value = '';
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  loadSheet(name);
+}
+
+function updateTabCount(name, count) {
+  tabCounts[name] = count;
+  const id = 'cnt-tab-' + name.replace(/[^a-z0-9]/gi,'_');
+  const el = document.getElementById(id);
+  if (el) el.textContent = count;
+}
+
+function setTabError(name) {
+  const id = 'tab-' + name.replace(/[^a-z0-9]/gi,'_');
+  const el = document.getElementById(id);
+  if (el) el.classList.add('error-tab');
+}
+
+function updateTotalCount() {
+  const total = Object.values(tabCounts).reduce((a,b)=>a+b,0);
+  document.getElementById('totalCount').textContent = total || '—';
+}
+
+// ─── CONTROLS ─────────────────────────────────────────────────────────────────
+function filterAndRender() {
+  searchQuery = document.getElementById('globalSearch').value;
+  const cached = cache[currentSheet];
+  if (cached) renderTable(cached.data);
+}
+
+function setSort(type, btn) {
+  currentSort = type;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const cached = cache[currentSheet];
+  if (cached) renderTable(cached.data);
+}
+
+async function refreshCurrentSheet() {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+  await loadSheet(currentSheet, true);
+  btn.classList.remove('spinning');
+  showToast('✓ Dane odświeżone');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ─── AUTO REFRESH co 5 minut ──────────────────────────────────────────────────
+setInterval(() => {
+  if (document.visibilityState === 'visible') {
+    loadSheet(currentSheet, true);
+  }
+}, 5 * 60 * 1000);
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+buildTabs();
+loadSheet(currentSheet);
+</script>
+</body>
+</html>
